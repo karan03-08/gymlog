@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymLog</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #28a745;
+            color: white;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            padding: 6px 12px;
+            width: auto;
+        }
+    </style>
+</head>
+<body>
+
+<h1>💪 GymLog</h1>
+
+<form id="workoutForm">
+    <h2>Add Workout</h2>
+    <input type="text" id="exerciseName" placeholder="Exercise Name" required />
+    <input type="number" id="sets" placeholder="Sets" required />
+    <input type="number" id="reps" placeholder="Reps" required />
+    <input type="number" id="weight" placeholder="Weight (kg)" required />
+    <input type="date" id="date" required />
+    <button type="submit">Add Workout</button>
+</form>
+
+<h2>Workout History</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Exercise</th>
+        <th>Sets</th>
+        <th>Reps</th>
+        <th>Weight (kg)</th>
+        <th>Date</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody id="workoutTable">
+    </tbody>
+</table>
+
+<script>
+    const API_URL = "http://localhost:8080/workouts";
+
+    function loadWorkouts() {
+        fetch(API_URL)
+            .then(res => res.json())
+            .then(data => {
+                const table = document.getElementById("workoutTable");
+                table.innerHTML = "";
+                data.forEach(workout => {
+                    table.innerHTML += `
+                        <tr>
+                            <td>${workout.exerciseName}</td>
+                            <td>${workout.sets}</td>
+                            <td>${workout.reps}</td>
+                            <td>${workout.weight}</td>
+                            <td>${workout.date}</td>
+                            <td><button class="delete-btn" onclick="deleteWorkout(${workout.id})">Delete</button></td>
+                        </tr>`;
+                });
+            });
+    }
+
+    document.getElementById("workoutForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const workout = {
+            exerciseName: document.getElementById("exerciseName").value,
+            sets: parseInt(document.getElementById("sets").value),
+            reps: parseInt(document.getElementById("reps").value),
+            weight: parseFloat(document.getElementById("weight").value),
+            date: document.getElementById("date").value
+        };
+        fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(workout)
+        }).then(() => {
+            loadWorkouts();
+            document.getElementById("workoutForm").reset();
+        });
+    });
+
+    function deleteWorkout(id) {
+        fetch(API_URL + "/" + id, {
+            method: "DELETE"
+        }).then(() => loadWorkouts());
+    }
+
+    loadWorkouts();
+</script>
+
+</body>
+</html>
